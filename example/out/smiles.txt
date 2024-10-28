@@ -1,0 +1,4 @@
+ZN [Zn+2]
+CA [Ca+2]
+0AN c1ccc(c(c1)/C=C/[C@H]2CN(C(=O)[C@@H]3CCC[C@H]2N3S(=O)(=O)c4cc(cc(c4)Cl)Cl)Cc5ccccn5)Cl
+ATP c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N

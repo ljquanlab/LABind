@@ -40,7 +40,6 @@ def valid(model, valid_list,fold_idx=None):
 
 def taskTrain(train_list,valid_list=None,model=None,epochs=50,fold_idx=None):
     model.to(DEVICE)
-    model.train()
     train_data = readData(
         name_list=train_list, 
         proj_dir=nn_config['proj_dir'], 
@@ -59,6 +58,7 @@ def taskTrain(train_list,valid_list=None,model=None,epochs=50,fold_idx=None):
     for epoch in range(epochs):
         all_loss = 0
         all_cnt = 0
+        model.train()
         for rfeat, ligand, xyz,  mask, y_true in tqdm(train_loader):
             tensors = [rfeat, ligand, xyz,  mask, y_true]
             tensors = [tensor.to(DEVICE) for tensor in tensors]

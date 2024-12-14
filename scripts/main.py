@@ -3,13 +3,13 @@ from readData import readData
 from utils import *
 import torch
 from torch import nn
-from model import LGBind
+from model import LABind
 from func_help import setALlSeed,get_std_opt
 from config import nn_config
 from config import dataset
 from tqdm import tqdm
 from sklearn.model_selection import KFold
-DEVICE = torch.device('cuda:5')
+DEVICE = torch.device('cuda:0')
 root_path = getRootPath()
 
 def valid(model, valid_list,fold_idx=None):
@@ -58,7 +58,6 @@ def taskTrain(train_list,valid_list=None,model=None,epochs=50,fold_idx=None):
     for epoch in range(epochs):
         all_loss = 0
         all_cnt = 0
-        model.train()
         for rfeat, ligand, xyz,  mask, y_true in tqdm(train_loader):
             tensors = [rfeat, ligand, xyz,  mask, y_true]
             tensors = [tensor.to(DEVICE) for tensor in tensors]
@@ -99,7 +98,7 @@ def fold5train():
     for train_idx, valid_idx in kf.split(data_list):
         train_list = [data_list[i] for i in train_idx]
         valid_list = [data_list[j] for j in valid_idx]
-        model = LGBind(
+        model = LABind(
         rfeat_dim=nn_config['rfeat_dim'], ligand_dim=nn_config['ligand_dim'], hidden_dim=nn_config['hidden_dim'], heads=nn_config['heads'], augment_eps=nn_config['augment_eps'], 
         rbf_num=nn_config['rbf_num'],top_k=nn_config['top_k'], attn_drop=nn_config['attn_drop'], dropout=nn_config['dropout'], num_layers=nn_config['num_layers'])
         taskTrain(train_list,valid_list,model,epochs=70,fold_idx=fold_idx)

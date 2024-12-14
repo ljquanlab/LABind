@@ -36,7 +36,7 @@ nn_config = {
     # training parameters
     'batch_size':15,
     'max_patience':10,
-    'device_ids':[5,3,7,8,9],
+    'device_ids':[0],
 }
 pretrain_path = { # Please modify 
     'esmfold_path': '/home/ylujiang/zzjun/tools/esmfold_v1', # esmfold path

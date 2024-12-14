@@ -138,7 +138,7 @@ def lab2vec(text):
     return np.array(res_list)
 
 def calEval(y_true,y_score,save_path=None):
-    y_pred = [1 if i > 0.35 else 0 for i in y_score] # default
+    y_pred = [1 if i > 0.35 else 0 for i in y_score] # default, The optimal threshold needs to be selected through validation
     
     TN, FP, FN, TP = confusion_matrix(y_true,y_pred).ravel()
     result = '\nRec: ' + str(recall_score(y_true,y_pred)) + '\n' + \

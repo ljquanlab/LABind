@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import Dataset
 from config import nn_config
 data_class = nn_config['pdb_class']
-class readData(Dataset):
+class readData(Dataset): # 用于训练
     def __init__(self, name_list, proj_dir, lig_dict, true_file):
         self.label_dict = self._read(true_file,skew=1)
         if name_list is not None:
@@ -71,7 +71,7 @@ class readData(Dataset):
         return lab_dict
     
 
-class LoadData(Dataset):
+class LoadData(Dataset): # 用于测试
     '''
         name_list: list of tuple, [(pdb_name,lig_name),...]
         proj_dir: str, path of label file

@@ -216,9 +216,9 @@ class EdgeFeature(nn.Module):
         O_features = torch.cat((dU, Q), dim=-1)  # [B, L, K, 7]
         return O_features
 
-class LGBind(nn.Module):
+class LABind(nn.Module):
     def __init__(self, rfeat_dim=1024, ligand_dim=64, hidden_dim=256, heads=4, augment_eps=0.1, rbf_num=16, top_k=5, attn_drop=0.2, dropout=0.2, num_layers=2):
-        super(LGBind, self).__init__()
+        super(LABind, self).__init__()
         self.augment_eps = augment_eps
         self.in_mlp = LMlp(rfeat_dim, rfeat_dim//2, hidden_dim)
         self.lig_mlp = easyMLP(ligand_dim, hidden_dim)

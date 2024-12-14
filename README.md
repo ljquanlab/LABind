@@ -75,6 +75,9 @@ Other parameters:
 ```
 > For instance, `-b 4 -g 0 1`
 
+### Retrain
+If you need to retrain the model, you can try modifying `./scripts/wandb.py` for training, which requires installing the wandb package. `pip install wandb`
+
 ## Contacts
 Any more questions, please do not hesitate to contact us: zjzhang21@stu.suda.edu.cn and ljquan@suda.edu.cn.
 

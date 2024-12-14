@@ -13,7 +13,7 @@ from Bio.PDB.DSSP import DSSP
 from Bio import SeqIO
 from lxml import etree
 from Bio.PDB.ResidueDepth import get_surface
-from model import LGBind
+from model import LABind
 from readData import LoadData
 from config import nn_config, pretrain_path
 from torch.utils.data import DataLoader
@@ -222,7 +222,7 @@ def prediction(fasta_path,batch_size=5,device_ids=[0],out_path='./',model_path='
     models = []
     for fold in range(5):
         state_dict = torch.load(model_path + 'fold%s.ckpt'%fold, run_device)
-        model = LGBind(
+        model = LABind(
         rfeat_dim=nn_config['rfeat_dim'], ligand_dim=nn_config['ligand_dim'], hidden_dim=nn_config['hidden_dim'], heads=nn_config['heads'], augment_eps=nn_config['augment_eps'], 
         rbf_num=nn_config['rbf_num'],top_k=nn_config['top_k'], attn_drop=nn_config['attn_drop'], dropout=nn_config['dropout'], num_layers=nn_config['num_layers']).to(run_device)
         model = nn.DataParallel(model,device_ids=device_ids)
@@ -241,9 +241,9 @@ def prediction(fasta_path,batch_size=5,device_ids=[0],out_path='./',model_path='
                          repr_dict=repr_dict)
     test_loader = DataLoader(test_data, batch_size=batch_size, collate_fn=test_data.collate_fn,shuffle=False,drop_last=False)
     
-    df = pd.DataFrame(columns=['Protein Name','Protein Squence','Ligand Name','Ligand SMILES','Binding Site Probability'])
+    df = pd.DataFrame(columns=['Protein Name','Protein Sequence','Ligand Name','Ligand SMILES','Binding Site Probability'])
     with torch.no_grad():
-        for names, ligs, rfeat, ligand, xyz, mask in tqdm(test_loader, desc='LGBind running', ncols=80, unit='batches'):
+        for names, ligs, rfeat, ligand, xyz, mask in tqdm(test_loader, desc='LABind running', ncols=80, unit='batches'):
             tensors = [rfeat, ligand, xyz,  mask]
             tensors = [tensor.to(run_device) for tensor in tensors]
             rfeat, ligand, xyz, mask = tensors

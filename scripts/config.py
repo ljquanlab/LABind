@@ -39,8 +39,8 @@ nn_config = {
     'device_ids':[0],
 }
 pretrain_path = { # Please modify 
-    'esmfold_path': '/home/ylujiang/zzjun/tools/esmfold_v1', # esmfold path
-    'ankh_path': '/home/ylujiang/zzjun/tools/ankh-large/', # ankh path
-    'molformer_path': '/home/ylujiang/zzjun/tools/MoLFormer-XL-both-10pct/', # molformer path
+    'esmfold_path': '../tools/esmfold_v1', # esmfold path
+    'ankh_path': '../tools/ankh-large/', # ankh path
+    'molformer_path': '../tools/MoLFormer-XL-both-10pct/', # molformer path
     'model_path':f'{root_path}/model/Unseen/' # based on Unseen
 }

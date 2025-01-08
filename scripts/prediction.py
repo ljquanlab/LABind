@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader
 from torch import nn
 from transformers import AutoModel, AutoTokenizer, T5EncoderModel, EsmForProteinFolding
 from Bio.PDB import PDBParser
-  
+from download_weights import download_all_weights
 # msms
 def getMSMS(pdb_path,msms_path='../tools/msms'):
     """
@@ -260,6 +260,9 @@ def prediction(fasta_path,batch_size=5,device_ids=[0],out_path='./',model_path='
 
                 
 def SetParser(parser_args):
+    # 如果不存在预训练的模型，则下载到config的模型路径
+    download_all_weights(pretrain_path = pretrain_path)
+    
     gpus = parser_args.gpu_id
     run_device = f'cuda:{gpus[0]}' if torch.cuda.is_available() else 'cpu'
     # # 创建输出文件夹

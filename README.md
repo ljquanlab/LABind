@@ -37,7 +37,7 @@ Or you can use the provided [environment.yml](./environment.yml) to create all t
 conda env create -f environment.yml
 ```
 
-It is also necessary to install three pre-trained models: [ESMFold_v1](https://huggingface.co/facebook/esmfold_v1), [Ankh-large](https://huggingface.co/ElnaggarLab/ankh-large), and [MolFormer-XL-both-10pct](https://huggingface.co/ibm/MoLFormer-XL-both-10pct). We use the pre-trained weights from HuggingFace for prediction. Please download them to your device and modify the corresponding paths in `scripts/config.py`.
+It is also necessary to install three pre-trained models: [ESMFold_v1](https://huggingface.co/facebook/esmfold_v1), [Ankh-large](https://huggingface.co/ElnaggarLab/ankh-large), and [MolFormer-XL-both-10pct](https://huggingface.co/ibm/MoLFormer-XL-both-10pct). We use the pre-trained weights from HuggingFace for prediction. Please download them to your device and modify the corresponding paths in `scripts/config.py`. You can also use `python ./scripts/download_weights.py -o <path>` to download model weights or to automatically download to the default path during prediction.
 
 Then add permission to execute for DSSP and MSMS by `chmod +x ./tools/mkdssp ./tools/msms`
 

@@ -88,7 +88,7 @@ def readFasta(path,label,skew=0):
             lens = len(content)
             for idx in range(lens)[::2+skew]:
                 name = content[idx].replace('>', '').replace('\n', '').strip()
-                seq = content[idx + 1+skew].replace('\n', '')
+                seq = content[idx + 1 + skew].replace('\n', '')
                 if name in res_dict.keys():
                     res_dict[name] = mergeSeq(res_dict[name], seq)
                 else:
@@ -137,20 +137,37 @@ def lab2vec(text):
         res_list = [int(i) for i in res_list]
     return np.array(res_list)
 
-def calEval(y_true,y_score,save_path=None):
-    y_pred = [1 if i > 0.35 else 0 for i in y_score] # default, The optimal threshold needs to be selected through validation
+def calEval(y_true,y_score,save_path=None, best_th = 0.35):
+    y_pred = [1 if i > best_th else 0 for i in y_score] # default, The optimal threshold needs to be selected through validation
     
     TN, FP, FN, TP = confusion_matrix(y_true,y_pred).ravel()
-    result = '\nRec: ' + str(recall_score(y_true,y_pred)) + '\n' + \
-    'SPE: ' + str(TN/(TN+FP)) + '\n' + \
-    'Acc: ' + str(accuracy_score(y_true,y_pred)) + '\n' + \
-    'Pre: ' + str(precision_score(y_true,y_pred)) + '\n' + \
-    'F1: ' + str(f1_score(y_true,y_pred)) + '\n' + \
-    'MCC: ' + str(matthews_corrcoef(y_true,y_pred)) + '\n' + \
-    'AUC: ' + str(roc_auc_score(y_true, y_score)) + '\n' + \
-    'AUPR: ' + str(average_precision_score(y_true, y_score)) + '\n' 
+    
     if save_path != None:
+        result = '\nRec: ' + str(recall_score(y_true,y_pred)) + '\n' + \
+        'SPE: ' + str(TN/(TN+FP)) + '\n' + \
+        'Acc: ' + str(accuracy_score(y_true,y_pred)) + '\n' + \
+        'Pre: ' + str(precision_score(y_true,y_pred)) + '\n' + \
+        'F1: ' + str(f1_score(y_true,y_pred)) + '\n' + \
+        'MCC: ' + str(matthews_corrcoef(y_true,y_pred)) + '\n' + \
+        'AUC: ' + str(roc_auc_score(y_true, y_score)) + '\n' + \
+        'AUPR: ' + str(average_precision_score(y_true, y_score)) + '\n' 
         appendText(save_path,result)
-        return result
+        return
     else:
-        return result
+        return {'Rec':recall_score(y_true,y_pred),'SPE':TN/(TN+FP),'Acc':accuracy_score(y_true,y_pred),
+                'Pre':precision_score(y_true,y_pred),'F1':f1_score(y_true,y_pred),
+                'MCC':matthews_corrcoef(y_true,y_pred),'AUC':roc_auc_score(y_true, y_score),'AUPR':average_precision_score(y_true, y_score)}
+
+def getBestThreshold(y_true,y_score):
+    best_threshold = 0
+    best_mcc = -1
+    best_pred = []
+    for i in range(100):
+        threshold = i/100
+        y_pred = [1 if i > threshold else 0 for i in y_score]
+        mcc = matthews_corrcoef(y_true,y_pred)
+        if mcc > best_mcc:
+            best_mcc = mcc
+            best_threshold = threshold
+            best_pred = y_pred
+    return best_threshold,best_mcc,best_pred

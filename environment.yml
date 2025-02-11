@@ -1,4 +1,4 @@
-name: LGBind
+name: LABind
 channels:
   - pyg
   - bioconda

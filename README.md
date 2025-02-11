@@ -45,6 +45,7 @@ Then add permission to execute for DSSP and MSMS by `chmod +x ./tools/mkdssp ./t
 ### Validation
 Checkpoints trained on the DS3 dataset are provided in `./model/Unseen/`. If you need to validate our results, you can modify the checkpoint used by LABind in the `./scripts/config.py`.
 We have uploaded all the data files and checkpoints to [Zenodo](https://doi.org/10.5281/zenodo.13938443).
+
 ### Prediction
 We provide examples in `./example`. First, you must provide a FASTA file. If `smiles.txt` is not available, LABind will automatically retrieve it, so please ensure your device can connect to the RCSB database.
 
@@ -76,7 +77,11 @@ Other parameters:
 > For instance, `-b 4 -g 0 1`
 
 ### Retrain
-If you need to retrain the model, you can try modifying `./scripts/wandb.py` for training, which requires installing the wandb package. `pip install wandb`
+We have provided a detailed workflow to reproduce the results presented in the paper, using training and validation based on DS3 as an illustrative example. (`./scripts/reproduction.ipynb`) If you need to retrain the model, you can try modifying `./scripts/wandb.py` for training, which requires installing the wandb package. `pip install wandb`  
+
+If you need to create a dataset based on the latest version of the [BioLiP2](https://zhanggroup.org/BioLiP/index.cgi) database, you can use `./scripts/create_ds.py` to generate a new dataset.
+
+
 
 ## Contacts
 Any more questions, please do not hesitate to contact us: zjzhang21@stu.suda.edu.cn and ljquan@suda.edu.cn.

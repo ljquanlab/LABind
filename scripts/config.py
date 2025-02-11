@@ -9,6 +9,7 @@ nn_config = {
     # dataset 
     'train_file': f'{root_path}/{dataset}/label/train/train.fa',
     'test_file': f'{root_path}/{dataset}/label/test/test.fa',
+    'valid_file': f'{root_path}/{dataset}/label/validation/validation.fa',
     'never_file': f'{root_path}/{dataset}/label/never/never.fa',
     'proj_dir': f'{root_path}/{dataset}/',
     'lig_dict': pkl.load(open(f'{root_path}/tools/ligand.pkl', 'rb')),

@@ -1,11 +1,15 @@
 # download pretrained weights for LABind
 import os
 from huggingface_hub import snapshot_download
-from config import pretrain_path
+pretrain_path = { # Please modify 
+    'esmfold_path': '../tools/esmfold_v1', # esmfold path
+    'ankh_path': '../tools/ankh-large/', # ankh path
+    'molformer_path': '../tools/MoLFormer-XL-both-10pct/', # molformer path
+}
 if 'HF_MIRROR' in os.environ: # set huggingface mirror
     HF_MIRROR = os.environ['HF_MIRROR']
 else:
-    HF_MIRROR = "https://hf-mirror.com/" # If you're in China, please set https://hf-mirror.com/ 
+    HF_MIRROR = "https://huggingface.co/" # If you're in China, please set https://hf-mirror.com/ 
 
 # download pretrained weights
 def download_all_weights(outpath, pretrain_path = None):

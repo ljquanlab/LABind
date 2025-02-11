@@ -12,8 +12,10 @@ from tqdm import tqdm
 from sklearn.model_selection import KFold, train_test_split
 import wandb
 import random
+from config import dataset
 root_path = getRootPath()
 setALlSeed(11)
+
 wandb.login()
 sweep_config = {
     'method': 'random',
@@ -27,43 +29,51 @@ sweep_config = {
 # 定义搜索参数
 sweep_config['parameters'].update({ # 关键参数搜索
     'hidden_dim': {
-        'values': [256] # [32,64,128,256] 
+        'values': [32,64,128,256] # [32,64,128,256]
     },
     'heads': {
-        'values': [4] # [4,6,8,10] 
+        'values': [4,6,8,10] # [4,6,8,10] 
     },
     'augment_eps': {
-        'values': [0.1]# [0, 0.05, 0.1, 0.2, 0.3] 
+        'values': [0, 0.05, 0.1, 0.2, 0.3] # [0, 0.05, 0.1, 0.2, 0.3] 
     },
     'rbf_num': {
-        'values': [8] # [8, 16, 32, 64] # [8] 
+        'values': [8, 16, 32, 64] # [8, 16, 32, 64]
     },
     'top_k': {
-        'values': [30]# [10, 20, 30, 40] 
+        'values': [10, 20, 30, 40] # [10, 20, 30, 40] 
     },
     'attn_drop': {
-        'values': [0.1] # [0.2]
+        'values': [0.1, 0.2, 0.3, 0.4] # [0.1, 0.2, 0.3, 0.4]
     },
     'dropout': {
-        'values': [0.3]# [0.2] # [0.1, 0.2, 0.3, 0.4]
+        'values': [0.1, 0.2, 0.3, 0.4] # [0.1, 0.2, 0.3, 0.4]
     },
     'num_layers': {
-        'values': [4] # [1, 2, 3, 4] 
+        'values': [1, 2, 3, 4] # [1, 2, 3, 4] 
     },
     'learning_rate': {
-        'values': [4e-4] # [1e-4,3e-4,5e-4] 
+        'values': [1e-4,2e-4,3e-4,4e-4,5e-4] # [1e-4,2e-4,3e-4,4e-4,5e-4]
     },
 })
 
 DEVICE = 'cuda:0'
 
-def valid(model, valid_list):
+def valid(model, valid_list,is_CV=True):
     model.eval()
-    valid_data = readData(
-        name_list=valid_list, 
-        proj_dir=nn_config['proj_dir'], 
-        lig_dict=nn_config['lig_dict'],
-        true_file=nn_config['train_file'])
+    if is_CV:
+        valid_data = readData(
+            name_list=valid_list, 
+            proj_dir=nn_config['proj_dir'], 
+            lig_dict=nn_config['lig_dict'],
+            true_file=nn_config['train_file'])
+    else:
+        valid_data = readData(
+            name_list=valid_list, 
+            proj_dir=nn_config['proj_dir'], 
+            lig_dict=nn_config['lig_dict'],
+            true_file=nn_config['valid_file'])
+        
     valid_loader = DataLoader(valid_data, batch_size=nn_config['batch_size'],shuffle=True, collate_fn=valid_data.collate_fn, num_workers=5)
     all_y_score = []
     all_y_true = []
@@ -97,10 +107,8 @@ def test(models, test_list):
             tensors = [tensor.to(DEVICE) for tensor in tensors]
             rfeat, ligand, xyz, mask, y_true = tensors
             logits = [model(rfeat, ligand, xyz, mask).sigmoid() for model in models]
-            logits = torch.stack(logits,1).mean(1)
-            # CA CD CO CU FE FE2 K MG MN NA NI ZN all
-            # 多任务学习
-            # 计算所有离子的loss
+            logits = torch.stack(logits,0).mean(0)
+            
             logits = torch.masked_select(logits, mask==1)
             y_true = torch.masked_select(y_true, mask==1)
             all_y_score.extend(logits.cpu().detach().numpy())
@@ -109,12 +117,12 @@ def test(models, test_list):
 
 # 创建数据集----------------
 kf = KFold(n_splits=5, shuffle=True, random_state = 42)
-data_list = readDataList(f'{root_path}/GPSite/label/train/train.fa',skew=1)
+data_list = readDataList(f'{root_path}/Unseen/label/train/train.fa',skew=1)
 # ------------------------
 
 # train
 def train(config=None):
-    
+    is_CV = True # 是否进行5折交叉验证
     with wandb.init(config=config):
         config = wandb.config
     loss_fn = nn.BCELoss(reduction='none')
@@ -122,9 +130,12 @@ def train(config=None):
     wandb.init(project='LABind', config = config.__dict__, name = nowtime, save_code=False)
     # 进行5折交叉验证 or 不进行5折加快速度
     fold_idx = 0
-    for train_idx, valid_idx in kf.split(data_list):
-        train_list = [data_list[idx] for idx in train_idx]
-        valid_list = [data_list[idx] for idx in valid_idx]
+    for train_idx, valid_idx in kf.split(data_list): # 5-fold
+        if not is_CV:
+            train_list = data_list
+        else:
+            train_list = [data_list[idx] for idx in train_idx]
+            valid_list = [data_list[idx] for idx in valid_idx]
         train_data = readData(
             name_list=train_list, 
             proj_dir=nn_config['proj_dir'], 
@@ -157,7 +168,7 @@ def train(config=None):
                 loss.backward()
                 optimizer.step()
             epoch_loss = all_loss / all_cnt
-            v_aupr = valid(model,valid_list) # 计算验证集的aupr
+            v_aupr = valid(model,valid_list, is_CV) # 计算验证集的aupr
             wandb.log({f'loss': epoch_loss, f'valid_aupr':v_aupr})
             if v_aupr > v_max_aupr:
                 v_max_aupr = v_aupr
@@ -167,12 +178,16 @@ def train(config=None):
                 patience += 1
             if patience >= nn_config['max_patience']:
                 break
+        if not is_CV:
+            break
         fold_idx += 1
-    # 训练结束
+        # 训练结束
     
-    # 计算测试集的MCC
+    
+    # load model
+    fold_all = 1 if not is_CV else 5
     models = []
-    for test_fold_idx in range(5):
+    for test_fold_idx in range(fold_all):
         model = LABind(rfeat_dim=nn_config['rfeat_dim'], ligand_dim=nn_config['ligand_dim'],
                     hidden_dim=config.hidden_dim, heads=config.heads, augment_eps=config.augment_eps, 
                     rbf_num=config.rbf_num, top_k=config.top_k, attn_drop=config.attn_drop, dropout=config.dropout, num_layers=config.num_layers)
@@ -182,20 +197,45 @@ def train(config=None):
         model.eval()
         models.append(model)
     
-    test_table = wandb.Table(columns=["ligand","AUPR"])
-    avg_aupr = 0
+    
+    # validation AUPR
+    if not is_CV:
+        valid_list = readDataList(f'{root_path}/{dataset}/label/validation/validation.fa',skew=1)
+        valid_data = readData(
+            name_list=valid_list, 
+            proj_dir=nn_config['proj_dir'], 
+            lig_dict=nn_config['lig_dict'],
+            true_file=f'{root_path}/{dataset}/label/validation/validation.fa')
+    else:
+        valid_data = readData(
+            name_list=valid_list, 
+            proj_dir=nn_config['proj_dir'], 
+            lig_dict=nn_config['lig_dict'],
+            true_file=nn_config['train_file'])
+        
+    valid_loader = DataLoader(valid_data, batch_size=nn_config['batch_size'], collate_fn=valid_data.collate_fn)
+    
+    all_y_score = []
+    all_y_true = []
     with torch.no_grad():
-        for test_ionic in getGPSite():
-            test_ionic_list = readDataList(f'{root_path}/GPSite/label/test/{test_ionic}.fa',skew=1)
-            aupr = test(models, test_ionic_list)
-            test_table.add_data(test_ionic,aupr)
-            avg_aupr += aupr
-    wandb.log({'test':test_table})
-    wandb.log({'AUPR':avg_aupr/len(getGPSite())})
+        for rfeat, ligand, xyz,  mask, y_true in valid_loader:
+            tensors = [rfeat, ligand, xyz,  mask, y_true]
+            tensors = [tensor.to(DEVICE) for tensor in tensors]
+            rfeat, ligand, xyz, mask, y_true = tensors
+            
+            logits = [model(rfeat, ligand, xyz, mask).sigmoid() for model in models]
+            logits = torch.stack(logits,0).mean(0)
+            
+            logits = torch.masked_select(logits, mask==1)
+            y_true = torch.masked_select(y_true, mask==1)
+            all_y_score.extend(logits.cpu().detach().numpy())
+            all_y_true.extend(y_true.cpu().detach().numpy())
+    aupr = average_precision_score(all_y_true, all_y_score)
+    
+    wandb.log({'AUPR':aupr})
     wandb.finish()
-    return
-# valid
 
 if __name__ == '__main__':
+    # You need to change it to your own WandB ID.
     sweep_id = wandb.sweep(sweep_config, project='LABind')
-    wandb.agent(sweep_id, function=train,count=4)
+    wandb.agent(sweep_id, function=train)

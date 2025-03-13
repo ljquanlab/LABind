@@ -30,7 +30,7 @@ nn_config = {
     'rbf_num':8, 
     'top_k':30, 
     'attn_drop':0.1, 
-    'dropout':0.3, 
+    'dropout':0.1, 
     'num_layers':4, 
     'lr':0.0004, 
     

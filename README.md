@@ -80,7 +80,9 @@ Other parameters:
 We have provided a detailed workflow to reproduce the results presented in the paper, using training and validation based on DS3 as an illustrative example. (`./scripts/reproduction.ipynb`) If you need to retrain the model, you can try modifying `./scripts/wandb.py` for training, which requires installing the wandb package. `pip install wandb`  
 
 If you need to create a dataset based on the latest version of the [BioLiP2](https://zhanggroup.org/BioLiP/index.cgi) database, you can use `./scripts/create_ds.py` to generate a new dataset.
-
+```bash
+python create_ds.py -o <out_path> -m <max_length>
+```
 
 
 ## Contacts

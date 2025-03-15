@@ -7,6 +7,23 @@ LABind is a novel structure-based method to predict the binding sites of protein
 ## Preparation
 Clone this repository by `git clone https://github.com/ljquanlab/LABind.git` or download the code in ZIP archive.
 
+LABind is tested on the Linux system, and the system information is as follows:
+
+```sh
+$lsb_release -a
+Distributor ID: Ubuntu
+Description:    Ubuntu 20.04.4 LTS
+Release:        20.04
+Codename:       focal
+$ldd --version
+ldd (Ubuntu GLIBC 2.31-0ubuntu9.7) 2.31
+$nvidia-smi
+NVIDIA-SMI 535.113.01
+Driver Version: 535.113.01
+$nvcc -V
+Cuda compilation tools, release 10.1, V10.1.243
+```
+
 LABind primarily relies on the following Python packages:
 - python=3.8.19
 - cuda=11.8
@@ -36,6 +53,8 @@ Or you can use the provided [environment.yml](./environment.yml) to create all t
 ```sh
 conda env create -f environment.yml
 ```
+
+> This will take a few minutes (5-10 minutes) to deploy.
 
 It is also necessary to install three pre-trained models: [ESMFold_v1](https://huggingface.co/facebook/esmfold_v1), [Ankh-large](https://huggingface.co/ElnaggarLab/ankh-large), and [MolFormer-XL-both-10pct](https://huggingface.co/ibm/MoLFormer-XL-both-10pct). We use the pre-trained weights from HuggingFace for prediction. Please download them to your device and modify the corresponding paths in `scripts/config.py`. You can also use `python ./scripts/download_weights.py -o <path>` to download model weights or to automatically download to the default path during prediction.
 

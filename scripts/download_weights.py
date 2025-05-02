@@ -12,7 +12,7 @@ else:
     HF_MIRROR = "https://huggingface.co/" # If you're in China, please set https://hf-mirror.com/ 
 
 # download pretrained weights
-def download_all_weights(outpath, pretrain_path = None):
+def download_all_weights(outpath= None, pretrain_path = None):
     # Ankh
     snapshot_download(
         repo_id = "ElnaggarLab/ankh-large", 

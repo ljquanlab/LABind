@@ -52,7 +52,7 @@ def getMSMS(pdb_path,msms_path='../tools/msms'):
             else:
                 closest_pos = atoms_coord[-1]
             atoms = list(residue.get_atoms())
-            ca_pos= residue['CA'].get_coord()
+            ca_pos= residue['CA'].get_coord() if 'CA' in residue else residue.child_list[0].get_coord()
             pos_s = 0
             un_s = 0
             for atom in atoms:
@@ -107,6 +107,9 @@ def getDSSP(pdb_path,dssp_path='../tools/dssp'): # get dssp feature
                     res_np.append(mapSS[tuple_dssp[2]] + list(tuple_dssp[3:]))
                 else:
                     res_np.append(np.zeros(20))
+        res_data = np.array(res_np)
+        if res_data.dtype == '<U32':
+            res_data = np.where(res_data == 'NA', 0, res_data).astype(np.float32)
         np.save(save_file, np.array(res_np))
 
 # getEmbed

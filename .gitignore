@@ -1,4 +1,6 @@
-./tools/ankh-large/
-./tools/esmfold_v1/
-./tools/MoLFormer-XL-both-10pct/
+tools/*/
 *.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.bin

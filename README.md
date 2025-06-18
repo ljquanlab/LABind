@@ -94,6 +94,7 @@ And the prediction results will be saved in `./example/out/RESULT.csv`.
 
 Other parameters:
 ```
+--cluster           Whether to cluster the binding residues, default=False
 -b  BATCH           Batch size for LABind prediction, default=1
 -g  GPU_LIST        Gpu list for LABind prediction, default=0
 ```

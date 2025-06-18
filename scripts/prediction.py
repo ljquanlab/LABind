@@ -338,8 +338,6 @@ def SetParser(parser_args):
     # based on DS3, threshold 0.48
     if args.cluster:
         cluster_residues(parser_args.outpath)
-def check_parser(parser_args):
-    pass
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='predict protein ligand binding site, you can input PDB file and protein sequence! Good Luck!')

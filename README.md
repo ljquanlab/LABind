@@ -67,7 +67,7 @@ Then add permission to execute for DSSP and MSMS by `chmod +x ./tools/mkdssp ./t
 ## Usage
 ### Validation
 Checkpoints trained on the DS3 dataset are provided in `./model/Unseen/`. If you need to validate our results, you can modify the checkpoint used by LABind in the `./scripts/config.py`.
-We have uploaded all the data files and checkpoints to [Zenodo](https://doi.org/10.5281/zenodo.15015508).
+We have uploaded all the data files and checkpoints to [Zenodo](https://zenodo.org/records/15692081).
 
 ### Prediction
 We provide examples in `./example`. First, you must provide a FASTA file. If `smiles.txt` is not available, LABind will automatically retrieve it, so please ensure your device can connect to the RCSB database.

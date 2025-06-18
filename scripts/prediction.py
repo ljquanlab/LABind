@@ -21,6 +21,7 @@ from torch import nn
 from transformers import AutoModel, AutoTokenizer, T5EncoderModel, EsmForProteinFolding
 from Bio.PDB import PDBParser
 from download_weights import download_all_weights
+from ast import literal_eval
 # msms
 def getMSMS(pdb_path,msms_path='../tools/msms'):
     """
@@ -261,11 +262,49 @@ def prediction(fasta_path,batch_size=5,device_ids=[0],out_path='./',model_path='
     # 按顺序保存为csv文件
     df.to_csv(out_path+'/RESULT.csv',index=False)
 
+def cluster_residues(out_path=""):
+    from sklearn.cluster import MeanShift
+    from Bio.PDB import PDBIO, Select
+    class PocketSelect(Select):
+        def __init__(self, pocket):
+            self.pocket = pocket
+        def accept_residue(self, residue):
+            return residue.get_id() in self.pocket
+    ms = MeanShift(bandwidth=12.0)
+    parser = PDBParser(QUIET=1)
+    io = PDBIO()
+    
+    pred_site_df = pd.read_csv(f"{out_path}/RESULT.csv", na_filter=False, converters={"Binding Site Probability": literal_eval})
+    pdb_path = f"{out_path}/pdb/"
+    pkt_path = f"{out_path}/pocket/"
+    os.makedirs(pkt_path, exist_ok=True)
+    
+    site_center_df = pd.DataFrame(columns=['Protein Name', 'Ligand Name', 'Binding Site Center'])
+    for idx, row in tqdm(pred_site_df.iterrows(), desc='Clustering residues', ncols=80, unit='proteins'):
+        prot_name = row['Protein Name']
+        ligd_name = row['Ligand Name']
+        bind_resi = row["Binding Site Probability"]
+        bind_resi = [1 if resi > 0.48 else 0 for resi in bind_resi]
+        pdb_structure = parser.get_structure(prot_name, os.path.join(pdb_path ,f"{prot_name}.pdb"))
+        residues = list(pdb_structure.get_residues())
+        pocket = set()
+        for idx, res in enumerate(residues): 
+            if bind_resi[idx] == 1: pocket.add(res.get_id())
+        io.set_structure(pdb_structure)
+        io.save(os.path.join(pkt_path, f"{prot_name}_{ligd_name}.pdb"), select=PocketSelect(pocket))
+        
+        pkt_structure = parser.get_structure(f"{prot_name}_{ligd_name}", os.path.join(pkt_path, f"{prot_name}_{ligd_name}.pdb"))
+        atoms = list(pkt_structure.get_atoms())
+        coords = np.array([atom.coord for atom in atoms])
+        ms.fit(coords)
+        cluster_label = ms.labels_
+        cluster_centers = np.array([coords[cluster_label == i].mean(axis=0) for i in range(cluster_label.max() + 1)])
+        site_center_df = pd.concat([site_center_df, pd.DataFrame({'Protein Name': [prot_name], 'Ligand Name': [ligd_name], 'Binding Site Center': [cluster_centers.tolist()]})], ignore_index=True)
+    site_center_df.to_csv(os.path.join(out_path, 'site_centers.csv'), index=False)
                 
 def SetParser(parser_args):
     # 如果不存在预训练的模型，则下载到config的模型路径
     download_all_weights(pretrain_path = pretrain_path)
-    
     gpus = parser_args.gpu_id
     run_device = f'cuda:{gpus[0]}' if torch.cuda.is_available() else 'cpu'
     # # 创建输出文件夹
@@ -296,7 +335,11 @@ def SetParser(parser_args):
     getMolEmbed(parser_args.input_fasta, smiles_file=parser_args.input_ligand, mol_path=pretrain_path['molformer_path'], device=run_device)
     
     prediction(parser_args.input_fasta,batch_size=parser_args.batch, device_ids=gpus, out_path=parser_args.outpath)
-    
+    # based on DS3, threshold 0.48
+    if args.cluster:
+        cluster_residues(parser_args.outpath)
+def check_parser(parser_args):
+    pass
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='predict protein ligand binding site, you can input PDB file and protein sequence! Good Luck!')
@@ -304,7 +347,7 @@ if __name__ == '__main__':
     parser.add_argument("-if", "--input_fasta", type = str, help = "Input fasta file, if you enter a fasta file, you are not allowed to enter a protein structure", required=True)
     parser.add_argument("-ip", "--input_pdbpath", type = str, help = "Input a pdb path, proteins that have PDB files will no longer use ESMFold for prediction.")
     parser.add_argument("-il", "--input_ligand", type= str, default='', help = "Input the lignad smiles file, like prot_name lig_name. Please use the RCSB standard ligand representation.")
-    
+    parser.add_argument('--cluster', action='store_true', default=False, help='Perform clustering on residues and output the binding site center.')
     parser.add_argument("-op", "--outpath", type = str, default='./output/',help = "Output path to save intermediate files and final predictions") #保存对于配体的结合概率
 
     parser.add_argument("-b", "--batch", type = int, default = 1, help = "Batch size of the model prediction")
@@ -312,3 +355,5 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     args = SetParser(args)
+
+    

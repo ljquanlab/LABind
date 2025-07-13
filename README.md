@@ -1,5 +1,5 @@
 # LABind: Identifying Protein Binding Ligand-Aware Sites via Learning Interactions Between Ligand and Protein
-
+[![DOI](https://zenodo.org/badge/879762327.svg)](https://doi.org/10.5281/zenodo.15871907)
 ## Introduction
 LABind is a novel structure-based method to predict the binding sites of proteins with all ions and small molecules in a ligand-aware manner.
 ![LABind](./architecture.png)
